@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { Command } from "commander";
-import inquirer from "inquirer";
+import { input, checkbox, confirm } from "@inquirer/prompts";
 import { fetchProfile } from "./github/profile.js";
 import { fetchRepos } from "./github/repos.js";
 import { collectRepoFiles, CollectedFile } from "./collector/files.js";
@@ -77,38 +77,31 @@ program
       if (options.allRepos) {
         selectedRepos = repos;
       } else {
-        const answers = await inquirer.prompt([
-          {
-            type: "confirm",
-            name: "allRepos",
-            message: `Do you want to include all ${repos.length} repositories?`,
-            default: false,
-          },
-        ]);
+        const answer = await confirm({
+          message: `Do you want to include all ${repos.length} repositories?`,
+          default: false,
+        });
 
-        if (answers.allRepos) {
+        if (answer) {
           selectedRepos = repos;
         } else {
           const repoChoices = repos.map((r) => ({
             name: `${r.name} (${r.language || "unknown"}) - ${r.description || "no description"}`,
             value: r,
-            short: r.name,
+			short: r.name,
           }));
 
-          const selected = await inquirer.prompt([
-            {
-              type: "checkbox",
-              name: "repos",
-              message: "Select repositories to include:",
-              choices: repoChoices,
-              validate: (selected: any[]) =>
-                selected.length > 0 || "You must select at least one repository.",
-            },
-          ]);
-
-          selectedRepos = selected.repos;
+          selectedRepos = await checkbox({
+            message: "Select repositories to include:",
+            choices: repoChoices,
+            required: true
+		  });
         }
       }
+	  
+	  //const style = await input({
+	  //  message: "Do you want"	
+	  //});
 
       const repoReports: RepoReport[] = [];
 
