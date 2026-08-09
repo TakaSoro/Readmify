@@ -1,0 +1,174 @@
+import { writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { Command } from "commander";
+import inquirer from "inquirer";
+import { fetchProfile } from "./github/profile.js";
+import { fetchRepos } from "./github/repos.js";
+import { collectRepoFiles, CollectedFile } from "./collector/files.js";
+import { summarizeFile } from "./ai/fileSummarizer.js";
+import { generateRepoReport } from "./generator/report.js";
+import { generateReadme } from "./generator/readme.js";
+import { validateConfig, GEMINI_API_KEY, GEMINI_MODEL, REPO_MAX_SIZE_MB } from "./config.js";
+import { ProfileData, RepoReport } from "./types.js";
+import { checkGeminiHealth } from "./ai/gemini.js";
+
+const program = new Command();
+
+const CONCURRENCY = 4;
+
+async function mapWithLimit<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += limit) {
+    const batch = items.slice(i, i + limit);
+    const batchResults = await Promise.all(batch.map(fn));
+    results.push(...batchResults);
+  }
+  return results;
+}
+
+program
+  .name("readme-gen")
+  .description("Generate a GitHub profile README using AI")
+  .version("1.0.0")
+  .argument("<username>", "GitHub username")
+  .option("-o, --output <path>", "Output file path", "README.md")
+  .option("-m, --model <name>", "Gemini model to use")
+  .option("-a, --all-repos", "Select all repositories without prompting")
+  .option("-n, --max-repos <number>", "Maximum repos to process", "20")
+  .action(async (username: string, options: any) => {
+    try {
+      validateConfig();
+
+      if (!existsSync(".env")) {
+        console.warn("Warning: .env file not found. Using environment variables.");
+      }
+
+      console.log(`Checking Gemini with model ${GEMINI_MODEL}...`);
+      const geminiHealthy = await checkGeminiHealth(GEMINI_API_KEY, GEMINI_MODEL);
+      if (!geminiHealthy) {
+        console.error(`Error: Gemini is not reachable or model ${GEMINI_MODEL} is invalid. Check your API key.`);
+        process.exit(1);
+      }
+      console.log("Gemini is healthy.");
+
+      console.log(`Fetching profile for ${username}...`);
+      const profile = await fetchProfile(username);
+      console.log(`Profile loaded: ${profile.name || profile.login}`);
+
+      console.log("Fetching repositories...");
+      const maxRepos = parseInt(options.maxRepos || "20", 10);
+      const repos = await fetchRepos(username, Math.min(maxRepos, 50));
+      console.log(`Found ${repos.length} public repositories.`);
+
+      if (repos.length === 0) {
+        console.log("No repositories found. Generating README with profile info only.");
+        const profileData: ProfileData = { profile, repoReports: [] };
+        const readme = await generateReadme(profileData);
+        await writeFile(options.output, readme, "utf-8");
+        console.log(`README saved to ${options.output}`);
+        return;
+      }
+
+      let selectedRepos = repos;
+      if (options.allRepos) {
+        selectedRepos = repos;
+      } else {
+        const answers = await inquirer.prompt([
+          {
+            type: "confirm",
+            name: "allRepos",
+            message: `Do you want to include all ${repos.length} repositories?`,
+            default: false,
+          },
+        ]);
+
+        if (answers.allRepos) {
+          selectedRepos = repos;
+        } else {
+          const repoChoices = repos.map((r) => ({
+            name: `${r.name} (${r.language || "unknown"}) - ${r.description || "no description"}`,
+            value: r,
+            short: r.name,
+          }));
+
+          const selected = await inquirer.prompt([
+            {
+              type: "checkbox",
+              name: "repos",
+              message: "Select repositories to include:",
+              choices: repoChoices,
+              validate: (selected: any[]) =>
+                selected.length > 0 || "You must select at least one repository.",
+            },
+          ]);
+
+          selectedRepos = selected.repos;
+        }
+      }
+
+      const repoReports: RepoReport[] = [];
+
+      for (const repo of selectedRepos) {
+        process.stdout.write(`Processing ${repo.fullName}... `);
+        try {
+          const collectedFiles = await collectRepoFiles(
+            repo.fullName,
+            repo.cloneUrl,
+            REPO_MAX_SIZE_MB
+          );
+
+          if (collectedFiles.length === 0) {
+            console.log("skipped (no meaningful files)");
+            continue;
+          }
+
+          process.stdout.write(`${collectedFiles.length} files, summarizing... `);
+
+          const fileSummaries = await mapWithLimit<CollectedFile, { path: string; summary: string }>(
+            collectedFiles,
+            CONCURRENCY,
+            async (file) => {
+              const summary = await summarizeFile(repo.fullName, file.path, file.content);
+              return { path: summary.path, summary: summary.summary };
+            }
+          );
+
+          const report = await generateRepoReport(fileSummaries, repo.name, repo.description);
+          report.fullName = repo.fullName;
+          report.url = repo.htmlUrl;
+          report.language = repo.language;
+          report.topics = repo.topics;
+          report.stars = repo.stargazersCount;
+          report.forks = repo.forksCount;
+          repoReports.push(report);
+          console.log("done");
+        } catch (err: any) {
+          console.log(`failed (${err.message})`);
+        }
+      }
+
+      if (repoReports.length === 0) {
+        console.log("No repository reports generated. Generating README with profile info only.");
+        const profileData: ProfileData = { profile, repoReports: [] };
+        const readme = await generateReadme(profileData);
+        await writeFile(options.output, readme, "utf-8");
+        console.log(`README saved to ${options.output}`);
+        return;
+      }
+
+      console.log(`\nGenerating README from ${repoReports.length} reports...`);
+      const profileData: ProfileData = { profile, repoReports };
+      const readme = await generateReadme(profileData);
+      await writeFile(options.output, readme, "utf-8");
+      console.log(`README saved to ${options.output}`);
+    } catch (err: any) {
+      console.error(`Error: ${err.message}`);
+      process.exit(1);
+    }
+  });
+
+program.parse();
