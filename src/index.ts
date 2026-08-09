@@ -35,7 +35,7 @@ program
   .description("Generate a GitHub profile README using AI")
   .version("1.0.0")
   .argument("<username>", "GitHub username")
-  .option("-o, --output <path>", "Output file path", "README.md")
+  .option("-o, --output <path>", "Output file path", "README-gen.md")
   .option("-m, --model <name>", "Gemini model to use")
   .option("-a, --all-repos", "Select all repositories without prompting")
   .option("-n, --max-repos <number>", "Maximum repos to process", "20")

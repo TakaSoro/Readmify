@@ -5,4 +5,4 @@ dist/
 .DS_Store
 .cache/
 package-lock.json
-README.MD
+README-gen.MD
