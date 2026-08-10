@@ -76,12 +76,16 @@ program
       const repos = await fetchRepos(username, Math.min(maxRepos, 50));
       console.log(`Found ${repos.length} public repositories.`);
 
+      const style = await input({
+        message: "What style would you like for the README?",
+      });
+
       if (repos.length === 0) {
         console.log(
           "No repositories found. Generating README with profile info only.",
         );
         const profileData: ProfileData = { profile, repoReports: [] };
-        const readme = await generateReadme(profileData);
+        const readme = await generateReadme(profileData, style);
         await writeFile(options.output, readme, "utf-8");
         console.log(`README saved to ${options.output}`);
         return;
@@ -112,10 +116,6 @@ program
           });
         }
       }
-
-      //const style = await input({
-      //  message: "Do you want"
-      //});
 
       const repoReports: RepoReport[] = [];
 
@@ -172,7 +172,7 @@ program
           "No repository reports generated. Generating README with profile info only.",
         );
         const profileData: ProfileData = { profile, repoReports: [] };
-        const readme = await generateReadme(profileData);
+        const readme = await generateReadme(profileData, style);
         await writeFile(options.output, readme, "utf-8");
         console.log(`README saved to ${options.output}`);
         return;
@@ -180,7 +180,7 @@ program
 
       console.log(`\nGenerating README from ${repoReports.length} reports...`);
       const profileData: ProfileData = { profile, repoReports };
-      const readme = await generateReadme(profileData);
+      const readme = await generateReadme(profileData, style);
       await writeFile(options.output, readme, "utf-8");
       console.log(`README saved to ${options.output}`);
     } catch (err: any) {

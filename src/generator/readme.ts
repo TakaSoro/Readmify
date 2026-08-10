@@ -5,6 +5,7 @@ import { GEMINI_API_KEY, GEMINI_MODEL } from "../config.js";
 
 export async function generateReadme(
   profileData: ProfileData,
+  style: string,
 ): Promise<string> {
   const profileJson = JSON.stringify(profileData.profile, null, 2);
   const reportsJson = JSON.stringify(profileData.repoReports, null, 2);
@@ -12,7 +13,9 @@ export async function generateReadme(
   const prompt = README_GENERATION_PROMPT.replace(
     "{{PROFILE_DATA}}",
     profileJson,
-  ).replace("{{REPO_REPORTS}}", reportsJson);
+  )
+    .replace("{{REPO_REPORTS}}", reportsJson)
+    .replace("{{STYLE}}", style);
 
   const response = await chat(GEMINI_API_KEY, {
     model: GEMINI_MODEL,

@@ -55,4 +55,8 @@ Profile Data:
 {{PROFILE_DATA}}
 
 Repository Reports:
-{{REPO_REPORTS}}`;
+{{REPO_REPORTS}}
+
+Preferred Style:
+{{STYLE}}
+`;
