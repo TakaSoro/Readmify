@@ -8,7 +8,12 @@ import { collectRepoFiles, CollectedFile } from "./collector/files.js";
 import { summarizeFile } from "./ai/fileSummarizer.js";
 import { generateRepoReport } from "./generator/report.js";
 import { generateReadme } from "./generator/readme.js";
-import { validateConfig, GEMINI_API_KEY, GEMINI_MODEL, REPO_MAX_SIZE_MB } from "./config.js";
+import {
+  validateConfig,
+  GEMINI_API_KEY,
+  GEMINI_MODEL,
+  REPO_MAX_SIZE_MB,
+} from "./config.js";
 import { ProfileData, RepoReport } from "./types.js";
 import { checkGeminiHealth } from "./ai/gemini.js";
 
@@ -19,7 +24,7 @@ const CONCURRENCY = 4;
 async function mapWithLimit<T, R>(
   items: T[],
   limit: number,
-  fn: (item: T) => Promise<R>
+  fn: (item: T) => Promise<R>,
 ): Promise<R[]> {
   const results: R[] = [];
   for (let i = 0; i < items.length; i += limit) {
@@ -44,13 +49,20 @@ program
       validateConfig();
 
       if (!existsSync(".env")) {
-        console.warn("Warning: .env file not found. Using environment variables.");
+        console.warn(
+          "Warning: .env file not found. Using environment variables.",
+        );
       }
 
       console.log(`Checking Gemini with model ${GEMINI_MODEL}...`);
-      const geminiHealthy = await checkGeminiHealth(GEMINI_API_KEY, GEMINI_MODEL);
+      const geminiHealthy = await checkGeminiHealth(
+        GEMINI_API_KEY,
+        GEMINI_MODEL,
+      );
       if (!geminiHealthy) {
-        console.error(`Error: Gemini is not reachable or model ${GEMINI_MODEL} is invalid. Check your API key.`);
+        console.error(
+          `Error: Gemini is not reachable or model ${GEMINI_MODEL} is invalid. Check your API key.`,
+        );
         process.exit(1);
       }
       console.log("Gemini is healthy.");
@@ -65,7 +77,9 @@ program
       console.log(`Found ${repos.length} public repositories.`);
 
       if (repos.length === 0) {
-        console.log("No repositories found. Generating README with profile info only.");
+        console.log(
+          "No repositories found. Generating README with profile info only.",
+        );
         const profileData: ProfileData = { profile, repoReports: [] };
         const readme = await generateReadme(profileData);
         await writeFile(options.output, readme, "utf-8");
@@ -88,20 +102,20 @@ program
           const repoChoices = repos.map((r) => ({
             name: `${r.name} (${r.language || "unknown"}) - ${r.description || "no description"}`,
             value: r,
-			short: r.name,
+            short: r.name,
           }));
 
           selectedRepos = await checkbox({
             message: "Select repositories to include:",
             choices: repoChoices,
-            required: true
-		  });
+            required: true,
+          });
         }
       }
-	  
-	  //const style = await input({
-	  //  message: "Do you want"	
-	  //});
+
+      //const style = await input({
+      //  message: "Do you want"
+      //});
 
       const repoReports: RepoReport[] = [];
 
@@ -111,7 +125,7 @@ program
           const collectedFiles = await collectRepoFiles(
             repo.fullName,
             repo.cloneUrl,
-            REPO_MAX_SIZE_MB
+            REPO_MAX_SIZE_MB,
           );
 
           if (collectedFiles.length === 0) {
@@ -119,18 +133,27 @@ program
             continue;
           }
 
-          process.stdout.write(`${collectedFiles.length} files, summarizing... `);
-
-          const fileSummaries = await mapWithLimit<CollectedFile, { path: string; summary: string }>(
-            collectedFiles,
-            CONCURRENCY,
-            async (file) => {
-              const summary = await summarizeFile(repo.fullName, file.path, file.content);
-              return { path: summary.path, summary: summary.summary };
-            }
+          process.stdout.write(
+            `${collectedFiles.length} files, summarizing... `,
           );
 
-          const report = await generateRepoReport(fileSummaries, repo.name, repo.description);
+          const fileSummaries = await mapWithLimit<
+            CollectedFile,
+            { path: string; summary: string }
+          >(collectedFiles, CONCURRENCY, async (file) => {
+            const summary = await summarizeFile(
+              repo.fullName,
+              file.path,
+              file.content,
+            );
+            return { path: summary.path, summary: summary.summary };
+          });
+
+          const report = await generateRepoReport(
+            fileSummaries,
+            repo.name,
+            repo.description,
+          );
           report.fullName = repo.fullName;
           report.url = repo.htmlUrl;
           report.language = repo.language;
@@ -145,7 +168,9 @@ program
       }
 
       if (repoReports.length === 0) {
-        console.log("No repository reports generated. Generating README with profile info only.");
+        console.log(
+          "No repository reports generated. Generating README with profile info only.",
+        );
         const profileData: ProfileData = { profile, repoReports: [] };
         const readme = await generateReadme(profileData);
         await writeFile(options.output, readme, "utf-8");

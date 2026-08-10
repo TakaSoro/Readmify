@@ -18,10 +18,12 @@ export interface GeminiChatOptions {
 
 export async function generate(
   apiKey: string,
-  options: GeminiGenerateOptions
+  options: GeminiGenerateOptions,
 ): Promise<string> {
   const client = new GoogleGenAI({ apiKey });
-  const contents = [{ role: "user" as const, parts: [{ text: options.prompt }] }];
+  const contents = [
+    { role: "user" as const, parts: [{ text: options.prompt }] },
+  ];
   const response = await client.models.generateContent({
     model: options.model,
     contents,
@@ -32,7 +34,7 @@ export async function generate(
 
 export async function chat(
   apiKey: string,
-  options: GeminiChatOptions
+  options: GeminiChatOptions,
 ): Promise<string> {
   const client = new GoogleGenAI({ apiKey });
   const contents = options.messages.map((msg) => ({
@@ -46,7 +48,10 @@ export async function chat(
   return response.text || "";
 }
 
-export async function checkGeminiHealth(apiKey: string, model: string): Promise<boolean> {
+export async function checkGeminiHealth(
+  apiKey: string,
+  model: string,
+): Promise<boolean> {
   try {
     const client = new GoogleGenAI({ apiKey });
     const response = await client.models.generateContent({

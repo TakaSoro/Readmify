@@ -19,7 +19,10 @@ export async function getCachedSummary(key: string): Promise<string | null> {
   }
 }
 
-export async function setCachedSummary(key: string, summary: string): Promise<void> {
+export async function setCachedSummary(
+  key: string,
+  summary: string,
+): Promise<void> {
   await mkdir(CACHE_DIR, { recursive: true });
   await writeFile(join(CACHE_DIR, `${key}.json`), JSON.stringify({ summary }));
 }
@@ -27,7 +30,7 @@ export async function setCachedSummary(key: string, summary: string): Promise<vo
 export async function summarizeFile(
   repoFullName: string,
   filePath: string,
-  content: string
+  content: string,
 ): Promise<FileSummary> {
   const cacheKey = fileCacheKey(repoFullName, filePath, content);
   const cached = await getCachedSummary(cacheKey);

@@ -2,7 +2,10 @@ import { Octokit } from "octokit";
 import { createOctokit } from "./client.js";
 import { GitHubRepo } from "../types.js";
 
-export async function fetchRepos(username: string, maxRepos: number = 50): Promise<GitHubRepo[]> {
+export async function fetchRepos(
+  username: string,
+  maxRepos: number = 50,
+): Promise<GitHubRepo[]> {
   const octokit = createOctokit();
   const repos: GitHubRepo[] = [];
   let page = 1;

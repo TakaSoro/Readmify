@@ -26,5 +26,8 @@
     "repomix": "^1.18.0",
     "tsx": "^4.23.11",
     "typescript": "^7.0.2"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6"
   }
 }

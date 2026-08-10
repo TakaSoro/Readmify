@@ -13,6 +13,8 @@ export function validateConfig(): void {
   if (!GITHUB_TOKEN) missing.push("GITHUB_TOKEN");
   if (!GEMINI_API_KEY) missing.push("GEMINI_API_KEY");
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+    throw new Error(
+      `Missing required environment variables: ${missing.join(", ")}`,
+    );
   }
 }

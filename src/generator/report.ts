@@ -6,14 +6,13 @@ import { GEMINI_API_KEY, GEMINI_MODEL } from "../config.js";
 export async function generateRepoReport(
   fileSummaries: FileSummary[],
   repoName: string,
-  repoDescription: string | null
+  repoDescription: string | null,
 ): Promise<RepoReport> {
   const summariesText = fileSummaries
     .map((fs) => `### ${fs.path}\n${fs.summary}`)
     .join("\n\n");
 
-  const prompt = REPO_REPORT_PROMPT
-    .replace("{{REPO_NAME}}", repoName)
+  const prompt = REPO_REPORT_PROMPT.replace("{{REPO_NAME}}", repoName)
     .replace("{{REPO_DESCRIPTION}}", repoDescription || "No description")
     .replace("{{FILE_SUMMARIES}}", summariesText);
 
@@ -43,7 +42,9 @@ export async function generateRepoReport(
     languages: Array.isArray(parsed.languages) ? parsed.languages : [],
     technologies: Array.isArray(parsed.technologies) ? parsed.technologies : [],
     mainFeatures: Array.isArray(parsed.mainFeatures) ? parsed.mainFeatures : [],
-    notableDetails: Array.isArray(parsed.notableDetails) ? parsed.notableDetails : [],
+    notableDetails: Array.isArray(parsed.notableDetails)
+      ? parsed.notableDetails
+      : [],
     fileSummaries,
   };
 }

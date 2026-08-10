@@ -66,7 +66,7 @@ export interface CollectedFile {
 export async function collectRepoFiles(
   repoFullName: string,
   cloneUrl: string,
-  maxSizeMB: number
+  maxSizeMB: number,
 ): Promise<CollectedFile[]> {
   const tempDir = await mkdtemp(join(tmpdir(), "readme-gen-"));
   const repoDir = join(tempDir, repoFullName.replace("/", sep));
@@ -74,14 +74,14 @@ export async function collectRepoFiles(
   try {
     await execAsync(
       `git clone --depth 1 --single-branch ${cloneUrl} ${repoDir}`,
-      { maxBuffer: 10 * 1024 * 1024 }
+      { maxBuffer: 10 * 1024 * 1024 },
     );
 
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
     const repoSize = await getDirSize(repoDir);
     if (repoSize > maxSizeBytes) {
       throw new Error(
-        `Repository size (${(repoSize / 1024 / 1024).toFixed(1)}MB) exceeds limit of ${maxSizeMB}MB`
+        `Repository size (${(repoSize / 1024 / 1024).toFixed(1)}MB) exceeds limit of ${maxSizeMB}MB`,
       );
     }
 
@@ -96,7 +96,7 @@ export async function collectRepoFiles(
 async function walk(
   dir: string,
   repoDir: string,
-  files: CollectedFile[]
+  files: CollectedFile[],
 ): Promise<void> {
   const entries = await readdir(dir, { withFileTypes: true });
 
@@ -146,7 +146,7 @@ async function readFileContent(path: string): Promise<string | null> {
 async function getDirSize(dir: string): Promise<number> {
   try {
     const { stdout } = await execAsync(
-      `powershell -Command "(Get-ChildItem -LiteralPath '${dir}' -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB"`
+      `powershell -Command "(Get-ChildItem -LiteralPath '${dir}' -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB"`,
     );
     const mb = parseFloat(stdout.trim());
     return isNaN(mb) ? 0 : mb * 1024 * 1024;
@@ -155,7 +155,11 @@ async function getDirSize(dir: string): Promise<number> {
   }
 }
 
-export function fileCacheKey(repoFullName: string, filePath: string, content: string): string {
+export function fileCacheKey(
+  repoFullName: string,
+  filePath: string,
+  content: string,
+): string {
   return createHash("sha256")
     .update(`${repoFullName}\0${filePath}\0${content}`)
     .digest("hex");
