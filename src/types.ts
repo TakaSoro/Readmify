@@ -53,6 +53,7 @@ export interface RepoReport {
 export interface ProfileData {
   profile: GitHubProfile;
   repoReports: RepoReport[];
+  referenceMarkdown?: string;
 }
 
 export interface GenerationOptions {

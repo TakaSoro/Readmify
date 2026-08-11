@@ -16,6 +16,7 @@ import {
 } from "./config.js";
 import { ProfileData, RepoReport } from "./types.js";
 import { checkGeminiHealth } from "./ai/gemini.js";
+import { urlToMD } from "./utils/urlToMD.js";
 
 const program = new Command();
 
@@ -80,11 +81,49 @@ program
         message: "What style would you like for the README?",
       });
 
+      const addReferences = await confirm({
+        message: "Do you want to add reference materials?",
+        default: false,
+      });
+
+      const referenceMarkdowns: string[] = [];
+      if (addReferences) {
+        while (true) {
+          const url = await input({
+            message: "Enter reference PDF URL:",
+          });
+
+          process.stdout.write("Downloading reference PDF... ");
+          try {
+            const markdown = await urlToMD(url);
+            referenceMarkdowns.push(markdown);
+            console.log("done");
+          } catch (err: any) {
+            console.log(`failed (${err.message})`);
+          }
+
+          const another = await confirm({
+            message: "Add another reference?",
+            default: false,
+          });
+          if (!another) break;
+        }
+      }
+
+      const referenceMarkdown =
+        referenceMarkdowns.length > 0
+          ? referenceMarkdowns.join("\n\n")
+          : undefined;
+
       if (repos.length === 0) {
         console.log(
           "No repositories found. Generating README with profile info only.",
         );
-        const profileData: ProfileData = { profile, repoReports: [] };
+        const profileData: ProfileData = {
+          profile,
+          repoReports: [],
+          referenceMarkdown,
+        };
         const readme = await generateReadme(profileData, style);
         await writeFile(options.output, readme, "utf-8");
         console.log(`README saved to ${options.output}`);
@@ -171,7 +210,11 @@ program
         console.log(
           "No repository reports generated. Generating README with profile info only.",
         );
-        const profileData: ProfileData = { profile, repoReports: [] };
+        const profileData: ProfileData = {
+          profile,
+          repoReports: [],
+          referenceMarkdown,
+        };
         const readme = await generateReadme(profileData, style);
         await writeFile(options.output, readme, "utf-8");
         console.log(`README saved to ${options.output}`);
@@ -179,7 +222,11 @@ program
       }
 
       console.log(`\nGenerating README from ${repoReports.length} reports...`);
-      const profileData: ProfileData = { profile, repoReports };
+      const profileData: ProfileData = {
+        profile,
+        repoReports,
+        referenceMarkdown,
+      };
       const readme = await generateReadme(profileData, style);
       await writeFile(options.output, readme, "utf-8");
       console.log(`README saved to ${options.output}`);

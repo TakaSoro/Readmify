@@ -57,6 +57,9 @@ Profile Data:
 Repository Reports:
 {{REPO_REPORTS}}
 
+Reference Material:
+{{REFERENCE_MARKDOWN}}
+
 Preferred Style:
 {{STYLE}}
 `;

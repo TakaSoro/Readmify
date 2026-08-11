@@ -9,13 +9,17 @@ export async function generateReadme(
 ): Promise<string> {
   const profileJson = JSON.stringify(profileData.profile, null, 2);
   const reportsJson = JSON.stringify(profileData.repoReports, null, 2);
+  const referenceMarkdown = profileData.referenceMarkdown || "None provided";
 
   const prompt = README_GENERATION_PROMPT.replace(
     "{{PROFILE_DATA}}",
     profileJson,
   )
     .replace("{{REPO_REPORTS}}", reportsJson)
+    .replace("{{REFERENCE_MARKDOWN}}", referenceMarkdown)
     .replace("{{STYLE}}", style);
+
+  console.log(prompt);
 
   const response = await chat(GEMINI_API_KEY, {
     model: GEMINI_MODEL,
