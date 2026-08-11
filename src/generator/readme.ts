@@ -19,8 +19,6 @@ export async function generateReadme(
     .replace("{{REFERENCE_MARKDOWN}}", referenceMarkdown)
     .replace("{{STYLE}}", style);
 
-  console.log(prompt);
-
   const response = await chat(GEMINI_API_KEY, {
     model: GEMINI_MODEL,
     messages: [
