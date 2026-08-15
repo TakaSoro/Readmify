@@ -1,14 +1,13 @@
 import { Downloader } from "nodejs-file-downloader";
-import pdf2html from "pdf2html";
-import TurndownService from "turndown";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, mkdir } from "node:fs/promises";
 
 const CACHE_DIR = "./.cache/refs";
 
 function generateRandomText(length: number) {
-  const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const charset =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let result = "";
   for (let i = 0; i < length; i++) {
     const randomIndex = Math.floor(Math.random() * charset.length);
@@ -17,7 +16,9 @@ function generateRandomText(length: number) {
   return result;
 }
 
-export async function urlToMD(url: string): Promise<string> {
+export async function checkHash(
+  url: string,
+): Promise<[boolean, string, string]> {
   await mkdir(CACHE_DIR, { recursive: true });
 
   const cacheKey = createHash("sha256").update(url).digest("hex");
@@ -25,11 +26,13 @@ export async function urlToMD(url: string): Promise<string> {
 
   try {
     const cached = await readFile(cachePath, "utf-8");
-    return cached;
+    return [true, cached, cachePath];
   } catch {
-    // proceed with download
+    return [false, "", cachePath];
   }
+}
 
+export async function downloadFile(url: string): Promise<string> {
   const dir = "./.cache/files";
   const filename = generateRandomText(16);
   const downloader = new Downloader({
@@ -40,19 +43,12 @@ export async function urlToMD(url: string): Promise<string> {
       console.log("Current chunk of data: ", chunk);
       console.log("Remaining bytes: ", remainingSize);
     },
-    fileName: `${filename}.pdf`,
+    fileName: filename,
   });
 
   await downloader.download();
 
-  const filePath = path.resolve(dir, `${filename}.pdf`);
+  const filePath = path.resolve(dir, filename);
 
-  const html = await pdf2html.html(filePath);
-
-  const turndown = new TurndownService();
-  const markdown = turndown.turndown(html);
-
-  await writeFile(cachePath, markdown, "utf-8");
-
-  return markdown;
+  return filePath;
 }

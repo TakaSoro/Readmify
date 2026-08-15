@@ -16,7 +16,7 @@ import {
 } from "./config.js";
 import { ProfileData, RepoReport } from "./types.js";
 import { checkGeminiHealth } from "./ai/gemini.js";
-import { urlToMD } from "./utils/urlToMD.js";
+import { toMD } from "./reference/toMD.js";
 
 const program = new Command();
 
@@ -90,12 +90,16 @@ program
       if (addReferences) {
         while (true) {
           const url = await input({
-            message: "Enter reference PDF URL:",
+            message: "Enter reference URL (pdf, docx, md, html):",
           });
 
-          process.stdout.write("Downloading reference PDF... ");
+          const ext = await input({
+            message: "Enter the file extension of reference:",
+          });
+
+          process.stdout.write("Downloading reference file... ");
           try {
-            const markdown = await urlToMD(url);
+            const markdown = await toMD(url, ext);
             referenceMarkdowns.push(markdown);
             console.log("done");
           } catch (err: any) {
