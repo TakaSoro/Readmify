@@ -12,7 +12,7 @@ export async function toMD(url: string, ext: string): Promise<string> {
 
   if (Object.hasOwn(pipelines, ext)) {
     for (const func of pipelines[ext]) {
-	  console.log(func);
+      console.log(func);
       [, ext_] = await func(filePath, ext_);
     }
   } else {

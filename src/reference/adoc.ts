@@ -6,9 +6,9 @@ export async function adocToHTML(
   ext: string,
 ): [string, string] {
   const adoc = await readFile(filePath, "utf-8");
-  const html = await convert(adoc, {attributes: { showtitle: true}});
+  const html = await convert(adoc, { attributes: { showtitle: true } });
 
   await writeFile(`${filePath}.html`, html, "utf-8");
-  
+
   return [`${filePath}.html`, "html"];
 }
