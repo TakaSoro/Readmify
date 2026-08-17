@@ -90,7 +90,7 @@ program
       if (addReferences) {
         while (true) {
           const url = await input({
-            message: "Enter reference URL (pdf, docx, md, html):",
+            message: "Enter reference URL:",
           });
 
           const ext = await input({

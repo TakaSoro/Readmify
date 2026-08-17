@@ -19,15 +19,16 @@
   "dependencies": {
     "@google/genai": "^2.16.0",
     "@inquirer/prompts": "^8.5.2",
+    "@myriaddreamin/typst-ts-node-compiler": "^0.7.0",
+    "@myriaddreamin/typst-ts-web-compiler": "^0.7.0",
+    "@myriaddreamin/typst.ts": "^0.7.0",
     "@types/node": "^26.2.0",
     "@types/turndown": "^5.0.6",
     "commander": "^15.0.0",
     "dotenv": "^17.4.2",
-    "mammoth": "^1.12.1",
     "nodejs-file-downloader": "^4.13.0",
     "octokit": "^5.0.5",
-    "pdf2html": "^4.4.0",
-    "turndown": "^7.2.4"
+    "officeparser": "^7.6.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
