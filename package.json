@@ -20,7 +20,6 @@
     "@google/genai": "^2.16.0",
     "@inquirer/prompts": "^8.5.2",
     "@myriaddreamin/typst-ts-node-compiler": "^0.7.0",
-    "@myriaddreamin/typst-ts-web-compiler": "^0.7.0",
     "@myriaddreamin/typst.ts": "^0.7.0",
     "@types/node": "^26.2.0",
     "@types/turndown": "^5.0.6",
