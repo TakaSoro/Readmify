@@ -6,3 +6,4 @@ dist/
 .cache/
 README-gen.MD
 .vscode/
+package-new.json
