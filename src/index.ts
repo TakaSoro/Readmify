@@ -103,6 +103,7 @@ program
             referenceMarkdowns.push(markdown);
             console.log("done");
           } catch (err: any) {
+			console.error(err.stack);
             console.log(`failed (${err.message})`);
           }
 
