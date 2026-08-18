@@ -38,7 +38,7 @@ const implementations = {
     {
       file: "../reference/adoc.ts",
       export: "adocToHTML",
-      size: 10,
+      size: 3,
     },
   ],
 
@@ -46,12 +46,12 @@ const implementations = {
     {
       file: "../reference/html.ts",
       export: "htmlToMD",
-      size: 10,
+      size: 8,
     },
     {
       file: "../reference/office.ts",
       export: "officeToMD",
-      size: 100,
+      size: 102,
     },
   ],
 
@@ -59,7 +59,7 @@ const implementations = {
     {
       file: "../reference/office.ts",
       export: "officeToMD",
-      size: 100,
+      size: 102,
     },
   ],
   
@@ -67,7 +67,7 @@ const implementations = {
     {
       file: "../reference/rst.ts",
       export: "rstToHTML",
-      size: 10,
+      size: 22,
     },
   ],
 } as const;
