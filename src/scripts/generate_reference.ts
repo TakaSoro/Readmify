@@ -22,6 +22,7 @@ const pipelines = {
   docx: ["officeToMD"],
   pptx: ["officeToMD"],
   xlsx: ["officeToMD"],
+  rst: ["rstToHTML", "htmlToMD"],
 } as const;
 
 /**
@@ -59,6 +60,14 @@ const implementations = {
       file: "../reference/office.ts",
       export: "officeToMD",
       size: 100,
+    },
+  ],
+  
+  rstToHTML: [
+    {
+      file: "../reference/rst.ts",
+      export: "rstToHTML",
+      size: 10,
     },
   ],
 } as const;

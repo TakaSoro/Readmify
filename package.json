@@ -31,6 +31,7 @@
     "nodejs-file-downloader": "^4.13.0",
     "octokit": "^5.0.5",
     "officeparser": "^7.6.2",
+    "rst-compiler": "^0.5.9",
     "turndown": "^7.2.4"
   },
   "devDependencies": {

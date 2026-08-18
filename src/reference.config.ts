@@ -1,3 +1,3 @@
 export default {
-  formats: ["docx", "md", "txt", "adoc"],
+  formats: ["docx", "md", "txt", "adoc", "rst"],
 };

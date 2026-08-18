@@ -3,6 +3,7 @@
 
 import { officeToMD } from "../reference/office.ts";
 import { adocToHTML } from "../reference/adoc.ts";
+import { rstToHTML } from "../reference/rst.ts";
 
 export default {
   docx: [
@@ -14,6 +15,10 @@ export default {
   ],
   adoc: [
     adocToHTML,
+    officeToMD,
+  ],
+  rst: [
+    rstToHTML,
     officeToMD,
   ],
 };
